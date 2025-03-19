@@ -5185,6 +5185,13 @@ class HGNetV2PreTrainedModel(metaclass=DummyObject):
         requires_backends(self, ["torch"])
 
 
+class HGNetV2ForImageClassification(metaclass=DummyObject):
+    _backends = ["torch"]
+
+    def __init__(self, *args, **kwargs):
+        requires_backends(self, ["torch"])
+
+
 class HieraBackbone(metaclass=DummyObject):
     _backends = ["torch"]
 
