@@ -776,15 +776,9 @@ class GraniteSpeechEncoderProjectorQFormer(nn.Module):
 class GraniteSpeechCTCModel(nn.Module):
     def __init__(self, config: GraniteSpeechEncoderConfig):
         super(GraniteSpeechCTCModel, self).__init__()
-
-        self.rnn_tr = nn.ModuleList(
-            [nn.Linear(config.input_dim, config.hidden_dim, bias=True)]
-            + [
-                GraniteSpeechConformerBlock(
-                    config,
-                )
-                for layer_idx in range(config.num_layers)
-            ]
+        self.input_linear = nn.Linear(config.input_dim, config.hidden_dim, bias=True)
+        self.layers = nn.ModuleList(
+            [GraniteSpeechConformerBlock(config) for _ in range(config.num_layers)]
         )
 
         self.out = nn.Linear(config.hidden_dim, config.output_dim, bias=True)
@@ -796,8 +790,8 @@ class GraniteSpeechCTCModel(nn.Module):
         self.output_dim = config.output_dim
 
     def forward(self, x: torch.Tensor):
-        x = self.rnn_tr[0](x)
-        for idx, layer in enumerate(self.rnn_tr[1:], start=1):
+        x = self.input_linear(x)
+        for idx, layer in enumerate(self.layers, start=1):
             x = layer(x, self.context_size)
             if idx == self.num_layers // 2:
                 x_mid = x.clone()
@@ -807,16 +801,6 @@ class GraniteSpeechCTCModel(nn.Module):
 
 
 # NOTE: Conformer adapated from: https://github.com/lucidrains/conformer.git
-class GraniteSpeechConformerPermute(nn.Module):
-    def __init__(self, dims):
-        super().__init__()
-        self.dims = dims
-
-    def forward(self, x):
-        x = x.permute(self.dims)
-        return x
-
-
 class GraniteSpeechConformerDepthWiseConv1d(nn.Module):
     def __init__(self, chan_in, chan_out, kernel_size, padding):
         super().__init__()
@@ -828,37 +812,6 @@ class GraniteSpeechConformerDepthWiseConv1d(nn.Module):
         return self.conv(x)
 
 
-class GraniteSpeechConformerScale(nn.Module):
-    def __init__(self, scale, fn):
-        super().__init__()
-        self.fn = fn
-        self.scale = scale
-
-    def forward(self, x, **kwargs):
-        return self.fn(x, **kwargs) * self.scale
-
-
-class GraniteSpeechConformerPreNorm(nn.Module):
-    def __init__(self, dim, fn):
-        super().__init__()
-        self.fn = fn
-        self.norm = nn.LayerNorm(dim)
-
-    def forward(self, x, **kwargs):
-        x = self.norm(x)
-        return self.fn(x, **kwargs)
-
-
-class GraniteSpeechConformerPreNormAttn(nn.Module):
-    def __init__(self, dim, fn):
-        super().__init__()
-        self.fn = fn
-        self.norm = nn.LayerNorm(dim)
-
-    def forward(self, x, context_size, **kwargs):
-        x = self.norm(x)
-        return self.fn(x, context_size, **kwargs)
-
 
 class GraniteSpeechConformerAttention(nn.Module):
     def __init__(self, config: GraniteSpeechEncoderConfig):
@@ -867,6 +820,7 @@ class GraniteSpeechConformerAttention(nn.Module):
         inner_dim = config.dim_head * self.num_heads
         self.dim_head = config.dim_head
         self.scale = self.dim_head**-0.5
+        self.pre_norm = nn.LayerNorm(config.hidden_dim)
         self.to_q = nn.Linear(config.hidden_dim, inner_dim, bias=False)
         self.to_kv = nn.Linear(config.hidden_dim, inner_dim * 2, bias=False)
         self.to_out = nn.Linear(inner_dim, config.hidden_dim)
@@ -877,6 +831,7 @@ class GraniteSpeechConformerAttention(nn.Module):
         self.dropout = nn.Dropout(config.dropout)
 
     def forward(self, x, context_size):
+        x = self.pre_norm(x)
         device, h, max_pos_emb = x.device, self.num_heads, self.max_pos_emb
         bs, n, d = x.shape
         assert context_size > 0 and context_size <= max_pos_emb
@@ -890,26 +845,23 @@ class GraniteSpeechConformerAttention(nn.Module):
         q, k, v = (self.to_q(x), *self.to_kv(x).chunk(2, dim=-1))
         q, k, v = [t.reshape(bs, nb, context_size, h, -1).transpose(2, 3) for t in (q, k, v)]
 
-        dots = einsum("b m h i d, b m h j d -> b m h i j", q, k) * self.scale
-
         # shaw's relative positional embedding
         seq = torch.arange(context_size, device=device)
         dist = seq.view(-1, 1) - seq.view(1, -1)
         dist = torch.clamp(dist, -context_size, context_size) + max_pos_emb
         rel_pos_emb = self.rel_pos_emb(dist).to(q)
-        pos_attn = einsum("b m h c d, c r d -> b m h c r", q, rel_pos_emb) * self.scale
-        dots = dots + pos_attn
+        rel_pos_emb_expanded = rel_pos_emb.view([1, 1, 1] + list(rel_pos_emb.shape))
+        pos_attn = torch.sum(q.unsqueeze(-2) * rel_pos_emb_expanded, dim=-1) * self.scale
 
         if nr > 0:
             # masked attention in the extended block
             mask = torch.ones(context_size, context_size, dtype=bool, device=device)
             mask[:nr, :nr] = 0
-            mask_value = -torch.finfo(dots.dtype).max
-            dots[:, -1, :].masked_fill_(mask, mask_value)
+            mask_value = -torch.finfo(pos_attn.dtype).max
+            pos_attn[:, -1, :].masked_fill_(mask, mask_value)
 
-        attn = dots.softmax(dim=-1)
-
-        out = einsum("b m h i j, b m h j d -> b m h i d", attn, v)
+        with torch.nn.attention.sdpa_kernel(torch.nn.attention.SDPBackend.MATH):
+            out = F.scaled_dot_product_attention(q, k, v, attn_mask=pos_attn, scale=self.scale)
         out = out.transpose(2, 3).reshape(bs, x.shape[1], -1)
         out = self.to_out(out[:, :n, :])
         return self.dropout(out)
@@ -918,42 +870,47 @@ class GraniteSpeechConformerAttention(nn.Module):
 class GraniteSpeechConformerFeedForward(nn.Module):
     def __init__(self, config: GraniteSpeechEncoderConfig):
         super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(config.hidden_dim, config.hidden_dim * config.feedforward_mult),
-            nn.SiLU(),
-            nn.Dropout(config.dropout),
-            nn.Linear(config.hidden_dim * config.feedforward_mult, config.hidden_dim),
-            nn.Dropout(config.dropout),
-        )
+        self.pre_norm = nn.LayerNorm(config.hidden_dim)
+        self.up_proj = nn.Linear(config.hidden_dim, config.hidden_dim * config.feedforward_mult)
+        self.act_fn = nn.SiLU()
+        self.dropout = nn.Dropout(config.dropout)
+        self.down_proj = nn.Linear(config.hidden_dim * config.feedforward_mult, config.hidden_dim)
 
     def forward(self, x):
-        return self.net(x)
+        x = self.pre_norm(x)
+        x = self.up_proj(x)
+        x = self.dropout(self.act_fn(x))
+        x = self.down_proj(x)
+        x = self.dropout(x)
+        return x
 
 
 class GraniteSpeechConformerConvModule(nn.Module):
     def __init__(self, config: GraniteSpeechEncoderConfig):
         super().__init__()
-        causal = False
         inner_dim = config.hidden_dim * config.conv_expansion_factor
-        padding = self.calc_same_padding(config.conv_kernel_size) if not causal else (config.conv_kernel_size - 1, 0)
+        padding = self.calc_same_padding(config.conv_kernel_size) 
 
-        self.net = nn.Sequential(
-            nn.LayerNorm(config.hidden_dim),
-            GraniteSpeechConformerPermute(dims=(0, 2, 1)),
-            nn.Conv1d(config.hidden_dim, inner_dim * 2, 1),
-            nn.GLU(dim=1),
-            GraniteSpeechConformerDepthWiseConv1d(
+        self.norm = nn.LayerNorm(config.hidden_dim)
+        self.up_conv = nn.Conv1d(config.hidden_dim, inner_dim * 2, 1)
+        self.glu = nn.GLU(dim=1)
+        self.depth_conv = GraniteSpeechConformerDepthWiseConv1d(
                 inner_dim, inner_dim, kernel_size=config.conv_kernel_size, padding=padding
-            ),
-            nn.BatchNorm1d(inner_dim) if not causal else nn.Identity(),
-            nn.SiLU(),
-            nn.Conv1d(inner_dim, config.hidden_dim, 1),
-            GraniteSpeechConformerPermute(dims=(0, 2, 1)),
-            nn.Dropout(config.dropout),
-        )
+            )
+        self.silu = nn.SiLU()
+        self.batch_norm = nn.BatchNorm1d(inner_dim)
+        self.down_conv = nn.Conv1d(inner_dim, config.hidden_dim, 1)
+        self.dropout = nn.Dropout(config.dropout)
 
     def forward(self, x):
-        return self.net(x)
+        x = self.norm(x)
+        x = self.up_conv(x.permute(0, 2, 1))
+        x = self.glu(x)
+        x = self.depth_conv(x)
+        x = self.silu(self.batch_norm(x))
+        x = self.down_conv(x).permute(0, 2, 1)
+        x = self.dropout(x)
+        return x
 
     @staticmethod
     def calc_same_padding(kernel_size: int):
@@ -968,20 +925,15 @@ class GraniteSpeechConformerBlock(nn.Module):
         self.attn = GraniteSpeechConformerAttention(config)
         self.conv = GraniteSpeechConformerConvModule(config)
         self.ff2 = GraniteSpeechConformerFeedForward(config)
-
-        self.attn = GraniteSpeechConformerPreNormAttn(config.hidden_dim, self.attn)
-        self.ff1 = GraniteSpeechConformerScale(0.5, GraniteSpeechConformerPreNorm(config.hidden_dim, self.ff1))
-        self.ff2 = GraniteSpeechConformerScale(0.5, GraniteSpeechConformerPreNorm(config.hidden_dim, self.ff2))
-
         self.post_norm = nn.LayerNorm(config.hidden_dim)
 
-    def forward(self, x, context_size):
-        x = self.ff1(x) + x
-        x = self.attn(x, context_size) + x
-        x = self.conv(x) + x
-        x = self.ff2(x) + x
-        x = self.post_norm(x)
-        return x
+    def forward(self, hidden_states, context_size):
+        hidden_states = 0.5 * self.ff1(hidden_states) + hidden_states
+        hidden_states = self.attn(hidden_states, context_size) + hidden_states
+        hidden_states = self.conv(hidden_states) + hidden_states
+        hidden_states = 0.5 * self.ff2(hidden_states) + hidden_states
+        hidden_states = self.post_norm(hidden_states)
+        return hidden_states
 
 
 GRANITE_SPEECH_START_DOCSTRING = r"""
