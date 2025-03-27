@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Inc. team.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +38,7 @@ import collections
 import os
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 
 # Path is set with the intent you should run this script from the root of the repo.
@@ -89,7 +88,7 @@ def find_backend(line: str) -> Optional[str]:
     return "_and_".join(backends)
 
 
-def parse_init(init_file) -> Optional[Tuple[Dict[str, List[str]], Dict[str, List[str]]]]:
+def parse_init(init_file) -> Optional[tuple[dict[str, list[str]], dict[str, list[str]]]]:
     """
     Read an init_file and parse (per backend) the `_import_structure` objects defined and the `TYPE_CHECKING` objects
     defined.
@@ -102,7 +101,7 @@ def parse_init(init_file) -> Optional[Tuple[Dict[str, List[str]], Dict[str, List
         imported objects, one for the `_import_structure` part of the init and one for the `TYPE_CHECKING` part of the
         init. Returns `None` if the init is not a custom init.
     """
-    with open(init_file, "r", encoding="utf-8", newline="\n") as f:
+    with open(init_file, encoding="utf-8", newline="\n") as f:
         lines = f.readlines()
 
     # Get the to `_import_structure` definition.
@@ -232,7 +231,7 @@ def parse_init(init_file) -> Optional[Tuple[Dict[str, List[str]], Dict[str, List
     return import_dict_objects, type_hint_objects
 
 
-def analyze_results(import_dict_objects: Dict[str, List[str]], type_hint_objects: Dict[str, List[str]]) -> List[str]:
+def analyze_results(import_dict_objects: dict[str, list[str]], type_hint_objects: dict[str, list[str]]) -> list[str]:
     """
     Analyze the differences between _import_structure objects and TYPE_CHECKING objects found in an init.
 
@@ -298,7 +297,7 @@ def check_all_inits():
         raise ValueError("\n\n".join(failures))
 
 
-def get_transformers_submodules() -> List[str]:
+def get_transformers_submodules() -> list[str]:
     """
     Returns the list of Transformers submodules.
     """
@@ -350,7 +349,7 @@ def check_submodules():
     # This contains all the base keys of the _import_structure object defined in the init, but if the user is missing
     # some optional dependencies, they may not have all of them. Thus we read the init to read all additions and
     # (potentiall re-) add them.
-    with open(os.path.join(PATH_TO_TRANSFORMERS, "__init__.py"), "r") as f:
+    with open(os.path.join(PATH_TO_TRANSFORMERS, "__init__.py")) as f:
         init_content = f.read()
     import_structure_keys.update(set(re.findall(r"import_structure\[\"([^\"]*)\"\]", init_content)))
 

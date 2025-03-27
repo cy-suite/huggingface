@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2021 The HuggingFace Team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +14,6 @@
 
 
 import unittest
-from typing import Tuple
 
 from transformers.models.mluke.tokenization_mluke import MLukeTokenizer
 from transformers.testing_utils import get_tests_dir, require_torch, slow
@@ -88,7 +86,7 @@ class MLukeTokenizerTest(TokenizerTesterMixin, unittest.TestCase):
         self.assertEqual(encoded_sentence, encoded_text_from_decode)
         self.assertEqual(encoded_pair, encoded_pair_from_decode)
 
-    def get_clean_sequence(self, tokenizer, max_length=20) -> Tuple[str, list]:
+    def get_clean_sequence(self, tokenizer, max_length=20) -> tuple[str, list]:
         txt = "Beyonce lives in Los Angeles"
         ids = tokenizer.encode(txt, add_special_tokens=False)
         return txt, ids
@@ -99,7 +97,7 @@ class MLukeTokenizerTest(TokenizerTesterMixin, unittest.TestCase):
 
     def test_embeded_special_tokens(self):
         for tokenizer, pretrained_name, kwargs in self.tokenizers_list:
-            with self.subTest("{} ({})".format(tokenizer.__class__.__name__, pretrained_name)):
+            with self.subTest(f"{tokenizer.__class__.__name__} ({pretrained_name})"):
                 tokenizer_r = self.rust_tokenizer_class.from_pretrained(pretrained_name, **kwargs)
                 tokenizer_p = self.tokenizer_class.from_pretrained(pretrained_name, **kwargs)
                 sentence = "A, <mask> AllenNLP sentence."

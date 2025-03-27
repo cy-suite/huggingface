@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Inc. team.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +36,7 @@ python utils/check_dummies.py --fix_and_overwrite
 import argparse
 import os
 import re
-from typing import Dict, List, Optional
+from typing import Optional
 
 
 # All paths are set with the intent you should run this script from the root of the repo with the command
@@ -92,14 +91,14 @@ def find_backend(line: str) -> Optional[str]:
     return "_and_".join(backends)
 
 
-def read_init() -> Dict[str, List[str]]:
+def read_init() -> dict[str, list[str]]:
     """
     Read the init and extract backend-specific objects.
 
     Returns:
         Dict[str, List[str]]: A dictionary mapping backend name to the list of object names requiring that backend.
     """
-    with open(os.path.join(PATH_TO_TRANSFORMERS, "__init__.py"), "r", encoding="utf-8", newline="\n") as f:
+    with open(os.path.join(PATH_TO_TRANSFORMERS, "__init__.py"), encoding="utf-8", newline="\n") as f:
         lines = f.readlines()
 
     # Get to the point we do the actual imports for type checking
@@ -156,7 +155,7 @@ def create_dummy_object(name: str, backend_name: str) -> str:
         return DUMMY_CLASS.format(name, backend_name)
 
 
-def create_dummy_files(backend_specific_objects: Optional[Dict[str, List[str]]] = None) -> Dict[str, str]:
+def create_dummy_files(backend_specific_objects: Optional[dict[str, list[str]]] = None) -> dict[str, str]:
     """
     Create the content of the dummy files.
 
@@ -206,7 +205,7 @@ def check_dummies(overwrite: bool = False):
     actual_dummies = {}
     for backend, file_path in dummy_file_paths.items():
         if os.path.isfile(file_path):
-            with open(file_path, "r", encoding="utf-8", newline="\n") as f:
+            with open(file_path, encoding="utf-8", newline="\n") as f:
                 actual_dummies[backend] = f.read()
         else:
             actual_dummies[backend] = ""

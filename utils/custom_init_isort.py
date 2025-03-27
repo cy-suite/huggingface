@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2021 The HuggingFace Inc. team.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +37,7 @@ python utils/custom_init_isort.py --check_only
 import argparse
 import os
 import re
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Optional
 
 
 # Path is defined with the intent you should run this script from the root of the repo.
@@ -64,7 +63,7 @@ def get_indent(line: str) -> str:
 
 def split_code_in_indented_blocks(
     code: str, indent_level: str = "", start_prompt: Optional[str] = None, end_prompt: Optional[str] = None
-) -> List[str]:
+) -> list[str]:
     """
     Split some code into its indented blocks, starting at a given level.
 
@@ -140,7 +139,7 @@ def ignore_underscore_and_lowercase(key: Callable[[Any], str]) -> Callable[[Any]
     return _inner
 
 
-def sort_objects(objects: List[Any], key: Optional[Callable[[Any], str]] = None) -> List[Any]:
+def sort_objects(objects: list[Any], key: Optional[Callable[[Any], str]] = None) -> list[Any]:
     """
     Sort a list of objects following the rules of isort (all uppercased first, camel-cased second and lower-cased
     last).

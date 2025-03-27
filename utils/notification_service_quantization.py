@@ -18,7 +18,6 @@ import json
 import os
 import sys
 import time
-from typing import Dict
 
 from get_ci_error_statistics import get_jobs
 from huggingface_hub import HfApi
@@ -41,7 +40,7 @@ class QuantizationMessage(Message):
     def __init__(
         self,
         title: str,
-        results: Dict,
+        results: dict,
     ):
         self.title = title
 
@@ -91,7 +90,7 @@ class QuantizationMessage(Message):
         return f"{int(hours)}h{int(minutes)}m{int(seconds)}s"
 
     @property
-    def failures_overwiew(self) -> Dict:
+    def failures_overwiew(self) -> dict:
         return {
             "type": "section",
             "text": {
@@ -110,7 +109,7 @@ class QuantizationMessage(Message):
         }
 
     @property
-    def failures_detailed(self) -> Dict:
+    def failures_detailed(self) -> dict:
         failures = {k: v["failed"] for k, v in self.results.items()}
 
         individual_reports = []

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding=utf-8
 # Copyright 2018 Google AI, Google Brain and Carnegie Mellon University Authors and the HuggingFace Inc. team.
 # Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
 #
@@ -66,7 +65,7 @@ def main():
         ptvsd.wait_for_attach()
 
     device = torch.device("cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu")
-    logger.info("device: {}".format(device))
+    logger.info(f"device: {device}")
 
     # Load a pre-processed dataset
     # You can also build the corpus yourself using TransfoXLCorpus methods
@@ -83,9 +82,7 @@ def main():
     model.to(device)
 
     logger.info(
-        "Evaluating with bsz {} tgt_len {} ext_len {} mem_len {} clamp_len {}".format(
-            args.batch_size, args.tgt_len, args.ext_len, args.mem_len, args.clamp_len
-        )
+        f"Evaluating with bsz {args.batch_size} tgt_len {args.tgt_len} ext_len {args.ext_len} mem_len {args.mem_len} clamp_len {args.clamp_len}"
     )
 
     model.reset_memory_length(args.mem_len)
@@ -111,7 +108,7 @@ def main():
                 total_loss += seq_len * loss.item()
                 total_len += seq_len
             total_time = time.time() - start_time
-        logger.info("Time : {:.2f}s, {:.2f}ms/segment".format(total_time, 1000 * total_time / (idx + 1)))
+        logger.info(f"Time : {total_time:.2f}s, {1000 * total_time / (idx + 1):.2f}ms/segment")
         return total_loss / total_len
 
     # Run on test data.
@@ -126,7 +123,7 @@ def main():
         valid_loss = None
 
     def format_log(loss, split):
-        log_str = "| {0} loss {1:5.2f} | {0} ppl {2:9.3f} ".format(split, loss, math.exp(loss))
+        log_str = f"| {split} loss {loss:5.2f} | {split} ppl {math.exp(loss):9.3f} "
         return log_str
 
     log_str = ""

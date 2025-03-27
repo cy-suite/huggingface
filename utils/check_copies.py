@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Inc. team.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +41,7 @@ import os
 import re
 import subprocess
 from collections import OrderedDict
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 from transformers.utils import direct_transformers_import
 
@@ -253,7 +252,7 @@ def _sanity_check_splits(splits_1, splits_2, is_class, filename):
         raise ValueError(f"In {filename}, two code blocks expected to be copies have different structures.")
 
 
-def find_block_end(lines: List[str], start_index: int, indent: int) -> int:
+def find_block_end(lines: list[str], start_index: int, indent: int) -> int:
     """
     Find the end of the class/func block starting at `start_index` in a source code (defined by `lines`).
 
@@ -282,8 +281,8 @@ def find_block_end(lines: List[str], start_index: int, indent: int) -> int:
 
 
 def split_code_into_blocks(
-    lines: List[str], start_index: int, end_index: int, indent: int, backtrace: bool = False
-) -> List[Tuple[str, int, int]]:
+    lines: list[str], start_index: int, end_index: int, indent: int, backtrace: bool = False
+) -> list[tuple[str, int, int]]:
     """
     Split the class/func block starting at `start_index` in a source code (defined by `lines`) into *inner blocks*.
 
@@ -391,7 +390,7 @@ def split_code_into_blocks(
 
 def find_code_in_transformers(
     object_name: str, base_path: str = None, return_indices: bool = False
-) -> Union[str, Tuple[List[str], int, int]]:
+) -> Union[str, tuple[list[str], int, int]]:
     """
     Find and return the source code of an object.
 
@@ -436,7 +435,7 @@ def find_code_in_transformers(
             f"`object_name` should begin with the name of a module of transformers but got {object_name}."
         )
 
-    with open(os.path.join(base_path, f"{module}.py"), "r", encoding="utf-8", newline="\n") as f:
+    with open(os.path.join(base_path, f"{module}.py"), encoding="utf-8", newline="\n") as f:
         lines = f.readlines()
 
     # Now let's find the class / func in the code!
@@ -638,7 +637,7 @@ def check_codes_match(observed_code: str, theoretical_code: str) -> Optional[int
         diff_index += 1
 
 
-def is_copy_consistent(filename: str, overwrite: bool = False, buffer: dict = None) -> Optional[List[Tuple[str, int]]]:
+def is_copy_consistent(filename: str, overwrite: bool = False, buffer: dict = None) -> Optional[list[tuple[str, int]]]:
     """
     Check if the code commented as a copy in a file matches the original.
 
@@ -656,7 +655,7 @@ def is_copy_consistent(filename: str, overwrite: bool = False, buffer: dict = No
     """
     base_path = TRANSFORMERS_PATH if not filename.startswith("tests") else MODEL_TEST_PATH
 
-    with open(filename, "r", encoding="utf-8", newline="\n") as f:
+    with open(filename, encoding="utf-8", newline="\n") as f:
         lines = f.readlines()
     diffs = []
     line_index = 0
@@ -874,9 +873,9 @@ def check_full_copies(overwrite: bool = False):
     """
     diffs = []
     for target, source in FULL_COPIES.items():
-        with open(source, "r", encoding="utf-8") as f:
+        with open(source, encoding="utf-8") as f:
             source_code = f.read()
-        with open(target, "r", encoding="utf-8") as f:
+        with open(target, encoding="utf-8") as f:
             target_code = f.read()
         if source_code != target_code:
             if overwrite:
@@ -907,7 +906,7 @@ def get_model_list(filename: str, start_prompt: str, end_prompt: str) -> str:
     Returns:
         `str`: The model list.
     """
-    with open(os.path.join(REPO_PATH, filename), "r", encoding="utf-8", newline="\n") as f:
+    with open(os.path.join(REPO_PATH, filename), encoding="utf-8", newline="\n") as f:
         lines = f.readlines()
     # Find the start of the list.
     start_index = 0
@@ -934,7 +933,7 @@ def get_model_list(filename: str, start_prompt: str, end_prompt: str) -> str:
     return "".join(result)
 
 
-def convert_to_localized_md(model_list: str, localized_model_list: str, format_str: str) -> Tuple[bool, str]:
+def convert_to_localized_md(model_list: str, localized_model_list: str, format_str: str) -> tuple[bool, str]:
     """
     Compare the model list from the main README to the one in a localized README.
 
@@ -1021,7 +1020,7 @@ def convert_to_localized_md(model_list: str, localized_model_list: str, format_s
 
     sorted_index = sorted(localized_model_index.items(), key=lambda x: x[0].lower())
 
-    return readmes_match, "\n".join((x[1] for x in sorted_index)) + "\n"
+    return readmes_match, "\n".join(x[1] for x in sorted_index) + "\n"
 
 
 # Map a model name with the name it has in the README for the check_readme check

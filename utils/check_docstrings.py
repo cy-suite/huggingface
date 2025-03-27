@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2023 The HuggingFace Inc. team.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +39,7 @@ import inspect
 import operator as op
 import re
 from pathlib import Path
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 from check_repo import ignore_undocumented
 from git import Repo
@@ -786,7 +785,7 @@ def find_source_file(obj: Any) -> Path:
     return obj_file.with_suffix(".py")
 
 
-def match_docstring_with_signature(obj: Any) -> Optional[Tuple[str, str]]:
+def match_docstring_with_signature(obj: Any) -> Optional[tuple[str, str]]:
     """
     Matches the docstring of an object with its signature.
 
@@ -948,7 +947,7 @@ def fix_docstring(obj: Any, old_doc_args: str, new_doc_args: str):
         return
 
     obj_file = find_source_file(obj)
-    with open(obj_file, "r", encoding="utf-8") as f:
+    with open(obj_file, encoding="utf-8") as f:
         content = f.read()
 
     # Replace content
