@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2024 The HuggingFace Inc. team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +17,6 @@ import inspect
 import os
 import tempfile
 import unittest
-from typing import Tuple
 
 import numpy as np
 import requests
@@ -119,8 +117,8 @@ class SiglipModelTesterMixin(ModelTesterMixin):
     def test_eager_matches_sdpa_inference(
         self,
         torch_dtype: str,
-        use_attention_mask_options: Tuple[bool, ...] = (True, False),
-        logit_keys: Tuple[str, ...] = ("logits_per_image", "logits_per_text", "image_embeds", "text_embeds"),
+        use_attention_mask_options: tuple[bool, ...] = (True, False),
+        logit_keys: tuple[str, ...] = ("logits_per_image", "logits_per_text", "image_embeds", "text_embeds"),
     ):
         if not self.all_model_classes[0]._supports_sdpa:
             self.skipTest(f"{self.all_model_classes[0].__name__} does not support SDPA")

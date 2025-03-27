@@ -63,7 +63,7 @@ def format_mrpc(data_dir, path_to_data):
         mrpc_train_file = os.path.join(path_to_data, "msr_paraphrase_train.txt")
         mrpc_test_file = os.path.join(path_to_data, "msr_paraphrase_test.txt")
     else:
-        print("Local MRPC data not specified, downloading data from %s" % MRPC_TRAIN)
+        print(f"Local MRPC data not specified, downloading data from {MRPC_TRAIN}")
         mrpc_train_file = os.path.join(mrpc_dir, "msr_paraphrase_train.txt")
         mrpc_test_file = os.path.join(mrpc_dir, "msr_paraphrase_test.txt")
         urllib.request.urlretrieve(MRPC_TRAIN, mrpc_train_file)
@@ -90,9 +90,9 @@ def format_mrpc(data_dir, path_to_data):
         for row in data_fh:
             label, id1, id2, s1, s2 = row.strip().split("\t")
             if [id1, id2] in dev_ids:
-                dev_fh.write("%s\t%s\t%s\t%s\t%s\n" % (label, id1, id2, s1, s2))
+                dev_fh.write(f"{label}\t{id1}\t{id2}\t{s1}\t{s2}\n")
             else:
-                train_fh.write("%s\t%s\t%s\t%s\t%s\n" % (label, id1, id2, s1, s2))
+                train_fh.write(f"{label}\t{id1}\t{id2}\t{s1}\t{s2}\n")
 
     with (
         open(mrpc_test_file, encoding="utf8") as data_fh,

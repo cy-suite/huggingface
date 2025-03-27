@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2023 The HuggingFace Inc. team.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +52,7 @@ def clean_doctest_list(doctest_file: str, overwrite: bool = False):
     """
     non_existent_paths = []
     all_paths = []
-    with open(doctest_file, "r", encoding="utf-8") as f:
+    with open(doctest_file, encoding="utf-8") as f:
         for line in f:
             line = line.strip().split(" ")[0]
             path = os.path.join(REPO_PATH, line)

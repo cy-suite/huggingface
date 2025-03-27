@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2021 The HuggingFace Team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,7 +76,7 @@ def update_version_in_file(fname: str, version: str, file_type: str):
         version (`str`): The new version to set in the file.
         file_type (`str`): The type of the file (should be a key in `REPLACE_PATTERNS`).
     """
-    with open(fname, "r", encoding="utf-8", newline="\n") as f:
+    with open(fname, encoding="utf-8", newline="\n") as f:
         code = f.read()
     re_pattern, replace = REPLACE_PATTERNS[file_type]
     replace = replace.replace("VERSION", version)
@@ -132,7 +131,7 @@ def get_version() -> packaging.version.Version:
     """
     Reads the current version in the main __init__.
     """
-    with open(REPLACE_FILES["init"], "r") as f:
+    with open(REPLACE_FILES["init"]) as f:
         code = f.read()
     default_version = REPLACE_PATTERNS["init"][0].search(code).groups()[0]
     return packaging.version.parse(default_version)

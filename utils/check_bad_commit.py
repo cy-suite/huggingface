@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding=utf-8
 
 # Copyright 2024 The HuggingFace Inc. team. All rights reserved.
 #
@@ -171,7 +170,7 @@ if __name__ == "__main__":
         with open(args.output_file, "w", encoding="UTF-8") as fp:
             fp.write(f"{args.test}\n{commit}")
     elif os.path.isfile(args.file):
-        with open(args.file, "r", encoding="UTF-8") as fp:
+        with open(args.file, encoding="UTF-8") as fp:
             reports = json.load(fp)
 
         for model in reports:

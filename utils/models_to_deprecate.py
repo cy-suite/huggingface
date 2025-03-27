@@ -94,7 +94,7 @@ def get_list_of_models_to_deprecate(
     model_paths = get_list_of_repo_model_paths(models_dir=models_dir)
 
     if use_cache and os.path.exists("models_info.json"):
-        with open("models_info.json", "r") as f:
+        with open("models_info.json") as f:
             models_info = json.load(f)
         # Convert datetimes back to datetime objects
         for model, info in models_info.items():

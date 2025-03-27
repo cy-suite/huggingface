@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2022 The HuggingFace Inc. team.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,7 +58,7 @@ def sort_auto_mapping(fname: str, overwrite: bool = False) -> Optional[bool]:
         `Optional[bool]`: Returns `None` if `overwrite=True`. Otherwise returns `True` if the file has an auto-mapping
         improperly sorted, `False` if the file is okay.
     """
-    with open(fname, "r", encoding="utf-8") as f:
+    with open(fname, encoding="utf-8") as f:
         content = f.read()
 
     lines = content.split("\n")

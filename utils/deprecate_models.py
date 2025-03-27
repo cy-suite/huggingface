@@ -9,7 +9,7 @@ import argparse
 import os
 from collections import defaultdict
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional
 
 import requests
 from custom_init_isort import sort_imports_in_all_inits
@@ -59,7 +59,7 @@ You can do so by running the following command: `pip install -U transformers=={l
 def insert_tip_to_model_doc(model_doc_path, tip_message):
     tip_message_lines = tip_message.split("\n")
 
-    with open(model_doc_path, "r") as f:
+    with open(model_doc_path) as f:
         model_doc = f.read()
 
     # Add the tip message to the model doc page directly underneath the title
@@ -77,7 +77,7 @@ def insert_tip_to_model_doc(model_doc_path, tip_message):
         f.write("\n".join(new_model_lines))
 
 
-def get_model_doc_path(model: str) -> Tuple[Optional[str], Optional[str]]:
+def get_model_doc_path(model: str) -> tuple[Optional[str], Optional[str]]:
     # Possible variants of the model name in the model doc path
     model_names = [model, model.replace("_", "-"), model.replace("_", "")]
 
@@ -110,7 +110,7 @@ def extract_model_info(model):
 
 
 def update_relative_imports(filename, model):
-    with open(filename, "r") as f:
+    with open(filename) as f:
         filelines = f.read()
 
     new_file_lines = []
@@ -130,7 +130,7 @@ def remove_copied_from_statements(model):
         if file == "__pycache__":
             continue
         file_path = model_path / file
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             file_lines = f.read()
 
         new_file_lines = []
@@ -178,7 +178,7 @@ def update_main_init_file(models):
         models (List[str]): The models to mark as deprecated
     """
     filename = REPO_PATH / "src/transformers/__init__.py"
-    with open(filename, "r") as f:
+    with open(filename) as f:
         init_file = f.read()
 
     # 1. For each model, find all the instances of model.model_name and replace with model.deprecated.model_name
@@ -203,7 +203,7 @@ def remove_model_references_from_file(filename, models, condition):
         condition (Callable): A function that takes the line and model and returns True if the line should be removed
     """
     filename = REPO_PATH / filename
-    with open(filename, "r") as f:
+    with open(filename) as f:
         init_file = f.read()
 
     new_file_lines = []
@@ -224,7 +224,7 @@ def remove_model_config_classes_from_config_check(model_config_classes):
         model_config_classes (List[str]): The model config classes to remove e.g. ["BertConfig", "DistilBertConfig"]
     """
     filename = REPO_PATH / "utils/check_config_attributes.py"
-    with open(filename, "r") as f:
+    with open(filename) as f:
         check_config_attributes = f.read()
 
     # Keep track as we have to delete comment above too
@@ -272,7 +272,7 @@ def add_models_to_deprecated_models_in_config_auto(models):
     to be in alphabetical order.
     """
     filepath = REPO_PATH / "src/transformers/models/auto/configuration_auto.py"
-    with open(filepath, "r") as f:
+    with open(filepath) as f:
         config_auto = f.read()
 
     new_file_lines = []

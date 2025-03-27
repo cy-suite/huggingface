@@ -22,7 +22,7 @@ import os
 import re
 import sys
 import time
-from typing import Dict, List, Optional, Union
+from typing import Optional, Union
 
 import requests
 from get_ci_error_statistics import get_jobs
@@ -88,7 +88,7 @@ def handle_stacktraces(test_results):
     return stacktraces
 
 
-def dicts_to_sum(objects: Union[Dict[str, Dict], List[dict]]):
+def dicts_to_sum(objects: Union[dict[str, dict], list[dict]]):
     if isinstance(objects, dict):
         lists = objects.values()
     else:
@@ -105,9 +105,9 @@ class Message:
         self,
         title: str,
         ci_title: str,
-        model_results: Dict,
-        additional_results: Dict,
-        selected_warnings: List = None,
+        model_results: dict,
+        additional_results: dict,
+        selected_warnings: list = None,
         prev_ci_artifacts=None,
     ):
         self.title = title
@@ -180,15 +180,15 @@ class Message:
         return f"{int(hours)}h{int(minutes)}m{int(seconds)}s"
 
     @property
-    def header(self) -> Dict:
+    def header(self) -> dict:
         return {"type": "header", "text": {"type": "plain_text", "text": self.title}}
 
     @property
-    def ci_title_section(self) -> Dict:
+    def ci_title_section(self) -> dict:
         return {"type": "section", "text": {"type": "mrkdwn", "text": self.ci_title}}
 
     @property
-    def no_failures(self) -> Dict:
+    def no_failures(self) -> dict:
         return {
             "type": "section",
             "text": {
@@ -204,7 +204,7 @@ class Message:
         }
 
     @property
-    def failures(self) -> Dict:
+    def failures(self) -> dict:
         return {
             "type": "section",
             "text": {
@@ -224,7 +224,7 @@ class Message:
         }
 
     @property
-    def warnings(self) -> Dict:
+    def warnings(self) -> dict:
         # If something goes wrong, let's avoid the CI report failing to be sent.
         button_text = "Check warnings (Link not found)"
         # Use the workflow run link
@@ -265,7 +265,7 @@ class Message:
             return f"{'0'.rjust(rjust)} | {str(report['multi']).rjust(rjust)} | "
 
     @property
-    def category_failures(self) -> Dict:
+    def category_failures(self) -> dict:
         model_failures = [v["failed"] for v in self.model_results.values()]
 
         category_failures = {}
@@ -334,7 +334,7 @@ class Message:
         return entries_changed
 
     @property
-    def model_failures(self) -> List[Dict]:
+    def model_failures(self) -> list[dict]:
         # Obtain per-model failures
         def per_model_sum(model_category_dict):
             return dicts_to_sum(model_category_dict["failed"].values())
@@ -466,7 +466,7 @@ class Message:
         return model_failure_sections
 
     @property
-    def additional_failures(self) -> Dict:
+    def additional_failures(self) -> dict:
         failures = {k: v["failed"] for k, v in self.additional_results.items()}
         errors = {k: v["error"] for k, v in self.additional_results.items()}
 
@@ -856,7 +856,7 @@ def retrieve_available_artifacts():
         def add_path(self, path: str, gpu: str = None):
             self.paths.append({"name": self.name, "path": path, "gpu": gpu})
 
-    _available_artifacts: Dict[str, Artifact] = {}
+    _available_artifacts: dict[str, Artifact] = {}
 
     directories = filter(os.path.isdir, os.listdir())
     for directory in directories:
