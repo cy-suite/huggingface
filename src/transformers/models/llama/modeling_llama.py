@@ -17,7 +17,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple, Union
 
 import torch
 import torch.utils.checkpoint
@@ -57,12 +57,14 @@ if is_torch_flex_attn_available():
 
     from ...integrations.flex_attention import make_flex_block_causal_mask
 
-from ...integrations import use_kernel_forward_from_hub, use_kernel_attn_from_hub
+from ...integrations import use_kernel_attn_from_hub, use_kernel_forward_from_hub
+
 
 logger = logging.get_logger(__name__)
 
 _CHECKPOINT_FOR_DOC = "meta-llama/Llama-2-7b-hf"
 _CONFIG_FOR_DOC = "LlamaConfig"
+
 
 @use_kernel_forward_from_hub("LlamaRMSNorm")
 class LlamaRMSNorm(nn.Module):
@@ -237,10 +239,13 @@ def eager_attention_forward(
 
     return attn_output, attn_weights
 
+
 @use_kernel_attn_from_hub("LlamaAttention", device="cuda")
 class LlamaAttention(nn.Module):
     """Multi-headed attention from 'Attention Is All You Need' paper"""
+
     use_kernel: bool = False
+
     def __init__(self, config: LlamaConfig, layer_idx: int):
         super().__init__()
         self.config = config
