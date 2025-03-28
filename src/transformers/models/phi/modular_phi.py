@@ -18,6 +18,7 @@ from ..llama.modeling_llama import (
     LlamaForSequenceClassification,
     LlamaForTokenClassification,
     LlamaModel,
+    LlamaPreTrainedModel,
     apply_rotary_pos_emb,
     eager_attention_forward,  # copied from Llama
 )
@@ -168,6 +169,10 @@ class PhiDecoderLayer(nn.Module):
         return outputs
 
 
+class PhiPreTrainedModel(LlamaPreTrainedModel):
+    pass
+
+
 class PhiModel(LlamaModel):
     def __init__(self, config: PhiConfig):
         super().__init__(config)
@@ -298,3 +303,12 @@ class PhiForSequenceClassification(LlamaForSequenceClassification):
 
 class PhiForTokenClassification(LlamaForTokenClassification):
     pass
+
+
+__all__ = [
+    "PhiPreTrainedModel",
+    "PhiModel",
+    "PhiForCausalLM",
+    "PhiForSequenceClassification",
+    "PhiForTokenClassification",
+]
