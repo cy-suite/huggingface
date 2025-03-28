@@ -142,8 +142,36 @@ class Idefics2FastImageProcessorKwargs(DefaultFastImageProcessorKwargs):
     """,
 )
 class Idefics2ImageProcessorFast(BaseImageProcessorFast):
-    """
+    r"""
     Fast implementation of Idefics2ImageProcessor that uses torch and torchvision functions for image transformations.
+
+    This processor offers performance optimizations for image processing tasks by leveraging torch and torchvision
+    functions directly. It handles various operations like resizing, normalization, padding, and splitting images for
+    the Idefics2 model.
+
+    Args:
+        do_resize (`bool`, *optional*, defaults to `True`):
+            Whether to resize the input to a specific size.
+        size (`Dict[str, int]`, *optional*, defaults to `{"shortest_edge": 378, "longest_edge": 980}`):
+            Size of the output image after resizing.
+        resample (`PILImageResampling`, *optional*, defaults to `PILImageResampling.BILINEAR`):
+            Resampling filter to use when resizing images.
+        do_rescale (`bool`, *optional*, defaults to `True`):
+            Whether to rescale the input by a specific factor.
+        rescale_factor (`float`, *optional*, defaults to `1/255`):
+            Rescale factor to apply to the image pixel values.
+        do_normalize (`bool`, *optional*, defaults to `True`):
+            Whether to normalize the input with mean and standard deviation.
+        image_mean (`List[float]`, *optional*, defaults to `IMAGENET_STANDARD_MEAN`):
+            Mean to use if normalizing the image.
+        image_std (`List[float]`, *optional*, defaults to `IMAGENET_STANDARD_STD`):
+            Standard deviation to use if normalizing the image.
+        do_pad (`bool`, *optional*, defaults to `True`):
+            Whether to pad images to the largest dimensions in a batch.
+        do_convert_rgb (`bool`, *optional*, defaults to `True`):
+            Whether to convert the image to RGB format.
+        do_image_splitting (`bool`, *optional*, defaults to `False`):
+            Whether to split the image into a sequence of 4 equal sub-images concatenated with the original image.
     """
 
     resample = PILImageResampling.BILINEAR
