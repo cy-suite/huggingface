@@ -367,7 +367,7 @@ class Idefics2ImageProcessorFast(BaseImageProcessorFast):
             else:
                 batch_pixel_values = [torch.stack(imgs) for imgs in padded_images]
                 batch_pixel_masks = [torch.stack(masks) for masks in pixel_masks]
-
+                # just for debug
                 return BatchFeature(
                     {
                         "pixel_values": torch.stack(batch_pixel_values),
