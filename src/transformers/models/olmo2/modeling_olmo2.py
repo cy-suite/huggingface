@@ -8,7 +8,7 @@ from functools import partial
 from typing import Callable, Optional, Tuple, Union
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 from ...activations import ACT2FN
 from ...cache_utils import Cache, DynamicCache, StaticCache
