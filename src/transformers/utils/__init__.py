@@ -157,6 +157,7 @@ from .import_utils import (
     is_jumanpp_available,
     is_kenlm_available,
     is_keras_nlp_available,
+    is_kernels_available,
     is_levenshtein_available,
     is_librosa_available,
     is_liger_kernel_available,
@@ -245,7 +246,6 @@ from .import_utils import (
     is_yt_dlp_available,
     requires_backends,
     torch_only_method,
-    is_kernels_available,
 )
 from .peft_utils import (
     ADAPTER_CONFIG_NAME,
