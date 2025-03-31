@@ -865,6 +865,7 @@ class DiffLlamaModel(DiffLlamaPreTrainedModel):
                     use_cache,
                     cache_position,
                     position_embeddings,
+                    **flash_attn_kwargs,
                 )
             else:
                 layer_outputs = decoder_layer(
