@@ -227,7 +227,7 @@ class FuyuForCausalLM(FuyuPreTrainedModel, GenerationMixin):
     @replace_return_docstrings(output_type=CausalLMOutputWithPast, config_class=_CONFIG_FOR_DOC)
     def forward(
         self,
-        input_ids: torch.LongTensor = None,
+        input_ids: Optional[torch.LongTensor] = None,
         image_patches: torch.Tensor = None,  # [batch_size, num_total_patches, patch_size_ x patch_size x num_channels ]
         image_patches_indices: torch.Tensor = None,
         attention_mask: Optional[torch.Tensor] = None,
